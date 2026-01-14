@@ -1,0 +1,17 @@
+global using System;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using AutoFixture;
+global using AutoMapper;
+global using FluentAssertions;
+global using Microsoft.Extensions.Logging;
+global using Moq;
+global using Xunit;
+global using RYG.Application.DTOs;
+global using RYG.Application.Mappings;
+global using RYG.Application.Services;
+global using RYG.Application.Validators;
+global using RYG.Domain.Entities;
+global using RYG.Domain.Enums;
+global using RYG.Domain.Events;
+global using RYG.Domain.Interfaces;

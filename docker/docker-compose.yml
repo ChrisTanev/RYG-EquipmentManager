@@ -1,0 +1,77 @@
+services:
+  # Azure Storage Emulator (Azurite)
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: azurite
+    ports:
+      - "10000:10000"  # Blob
+      - "10001:10001"  # Queue
+      - "10002:10002"  # Table
+    volumes:
+      - azurite-data:/data
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+
+  # Azure Service Bus Emulator
+  servicebus-emulator:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    container_name: servicebus-emulator
+    depends_on:
+      - mssql
+    ports:
+      - "5672:5672"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong@Password123"
+      SQL_SERVER: "mssql"
+    volumes:
+      - ./servicebus-config.json:/ServiceBus_Emulator/ConfigFiles/Config.json
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5672"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # SQL Server for Service Bus Emulator
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong@Password123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourStrong@Password123", "-Q", "SELECT 1", "-C"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Azure Functions App
+  functions:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ryg-functions
+    depends_on:
+      azurite:
+        condition: service_started
+      servicebus-emulator:
+        condition: service_healthy
+    ports:
+      - "7071:80"
+    environment:
+      AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1"
+      FUNCTIONS_WORKER_RUNTIME: "dotnet-isolated"
+      ServiceBusConnection: "Endpoint=sb://servicebus-emulator;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
+      ConnectionStrings__Database: "Data Source=/data/equipment.db"
+      ConnectionStrings__ServiceBus: "Endpoint=sb://servicebus-emulator;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
+      ServiceBus__TopicName: "equipment-events"
+    volumes:
+      - functions-data:/data
+
+volumes:
+  azurite-data:
+  mssql-data:
+  functions-data:

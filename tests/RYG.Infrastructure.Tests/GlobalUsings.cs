@@ -1,0 +1,11 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading.Tasks;
+global using AutoFixture;
+global using FluentAssertions;
+global using Microsoft.EntityFrameworkCore;
+global using Xunit;
+global using RYG.Domain.Entities;
+global using RYG.Domain.Enums;
+global using RYG.Infrastructure.Persistence;

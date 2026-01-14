@@ -1,0 +1,16 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "ServiceBusConnection": "",
+    "AzureSignalRConnectionString": ""
+  },
+  "ConnectionStrings": {
+    "Database": "Data Source=equipment.db",
+    "ServiceBus": ""
+  },
+  "ServiceBus": {
+    "TopicName": "equipment-events"
+  }
+}

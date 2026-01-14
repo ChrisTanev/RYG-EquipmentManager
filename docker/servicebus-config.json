@@ -1,0 +1,22 @@
+{
+  "UserConfig": {
+    "Namespaces": [
+      {
+        "Name": "equipment-namespace",
+        "Topics": [
+          {
+            "Name": "equipment-events",
+            "Subscriptions": [
+              {
+                "Name": "state-changed-subscription"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Logging": {
+      "Type": "Console"
+    }
+  }
+}
