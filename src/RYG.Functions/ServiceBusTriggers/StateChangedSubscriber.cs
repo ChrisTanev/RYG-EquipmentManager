@@ -14,7 +14,7 @@ public class StateChangedSubscriber(ILogger<StateChangedSubscriber> logger)
 
         var stateChangedEvent = JsonSerializer.Deserialize<EquipmentStateChangedEvent>(messageBody);
 
-        if (stateChangedEvent is null)
+        if (stateChangedEvent is null) // TODO throw instead?
         {
             logger.LogWarning("Failed to deserialize state changed event");
             return new SignalRMessageAction("equipmentStateChanged")

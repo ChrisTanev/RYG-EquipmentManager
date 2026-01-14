@@ -12,7 +12,7 @@ public class EquipmentService(
     public async Task<EquipmentDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var equipment = await repository.GetByIdAsync(id, cancellationToken);
-        return equipment is null ? null : mapper.Map<EquipmentDto>(equipment);
+        return equipment is null ? null : mapper.Map<EquipmentDto>(equipment); // TODO throw instead of returning null
     }
 
     public async Task<IEnumerable<EquipmentDto>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -37,7 +37,7 @@ public class EquipmentService(
         CancellationToken cancellationToken = default)
     {
         var equipment = await repository.GetByIdAsync(id, cancellationToken);
-        if (equipment is null) return null;
+        if (equipment is null) return null; // TODO throw instead of returning null
 
 
         equipment.UpdateName(request.Name);
@@ -53,7 +53,7 @@ public class EquipmentService(
     {
         var equipment = await repository.GetByIdAsync(id, cancellationToken);
         if (equipment is null)
-            return null;
+            return null; // TODO throw instead of returning null
 
         var previousState = equipment.State;
         equipment.ChangeState(request.State);
