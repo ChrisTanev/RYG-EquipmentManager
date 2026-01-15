@@ -8,7 +8,7 @@ public class ValidatorTests
     public async Task CreateEquipmentValidator_ShouldFail_WhenNameIsEmpty()
     {
         var validator = new CreateEquipmentValidator();
-        var request = new CreateEquipmentRequest("");
+        var request = new CreateEquipmentRequest(string.Empty);
 
         var result = await validator.ValidateAsync(request);
 
@@ -63,5 +63,53 @@ public class ValidatorTests
         var result = await validator.ValidateAsync(request);
 
         result.IsValid.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CreateOrderValidator_ShouldFail_WhenEquipmentIdIsEmpty()
+    {
+        var validator = new CreateOrderValidator();
+        var request = new CreateOrderRequest(Guid.Empty, "Test Order", DateTime.UtcNow);
+
+        var result = await validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "EquipmentId");
+    }
+
+    [Fact]
+    public async Task CreateOrderValidator_ShouldFail_WhenDescriptionIsEmpty()
+    {
+        var validator = new CreateOrderValidator();
+        var request = new CreateOrderRequest(_fixture.Create<Guid>(), string.Empty, DateTime.UtcNow);
+
+        var result = await validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Description");
+    }
+
+    [Fact]
+    public async Task CreateOrderValidator_ShouldFail_WhenDescriptionExceeds500Characters()
+    {
+        var validator = new CreateOrderValidator();
+        var longDescription = new string('a', 501);
+        var request = new CreateOrderRequest(_fixture.Create<Guid>(), longDescription, DateTime.UtcNow);
+
+        var result = await validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Description");
+    }
+
+    [Fact]
+    public async Task CreateOrderValidator_ShouldPass_WhenRequestIsValid()
+    {
+        var validator = new CreateOrderValidator();
+        var request = new CreateOrderRequest(_fixture.Create<Guid>(), "Test Order", DateTime.UtcNow);
+
+        var result = await validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeTrue();
     }
 }

@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.State).IsRequired();
+            entity.Property(e => e.CurrentOrderId);
             entity.Property(e => e.StateChangedAt).IsRequired();
             entity.Property(e => e.CreatedAt).IsRequired();
         });

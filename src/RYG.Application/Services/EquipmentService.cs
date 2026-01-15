@@ -1,5 +1,6 @@
 using AutoMapper;
 using RYG.Application.DTOs;
+using RYG.Domain.Exceptions;
 
 namespace RYG.Application.Services;
 
@@ -9,10 +10,10 @@ public class EquipmentService(
     IMapper mapper,
     ILogger<EquipmentService> logger) : IEquipmentService
 {
-    public async Task<EquipmentDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<EquipmentDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var equipment = await repository.GetByIdAsync(id, cancellationToken);
-        return equipment is null ? null : mapper.Map<EquipmentDto>(equipment); // TODO throw instead of returning null
+        var equipment = await repository.GetByIdAsync(id, cancellationToken) ?? throw new EquipmentNotFoundException(id);
+        return mapper.Map<EquipmentDto>(equipment);
     }
 
     public async Task<IEnumerable<EquipmentDto>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -33,62 +34,28 @@ public class EquipmentService(
         return mapper.Map<EquipmentDto>(equipment);
     }
 
-    public async Task<EquipmentDto?> UpdateAsync(Guid id, UpdateEquipmentRequest request,
+    public async Task<EquipmentDto> ChangeStateAsync(Guid id, ChangeStateRequest request,
         CancellationToken cancellationToken = default)
     {
         var equipment = await repository.GetByIdAsync(id, cancellationToken);
-        if (equipment is null) return null; // TODO throw instead of returning null
 
-
-        equipment.UpdateName(request.Name);
+        equipment.ChangeState(request.State);
         await repository.UpdateAsync(equipment, cancellationToken);
 
-        logger.LogInformation("Updated equipment {EquipmentId} name to {EquipmentName}", equipment.Id, equipment.Name);
+        var stateChangedEvent = new EquipmentStateChangedEvent(
+            equipment.Id,
+            equipment.Name,
+            equipment.State,
+            equipment.CurrentOrderId,
+            equipment.StateChangedAt
+        );
+
+        await eventPublisher.PublishAsync(stateChangedEvent, cancellationToken);
+
+        logger.LogInformation(
+            "Equipment {EquipmentId} state changed to {NewState}",
+            equipment.Id, equipment.State);
 
         return mapper.Map<EquipmentDto>(equipment);
-    }
-
-    public async Task<EquipmentDto?> ChangeStateAsync(Guid id, ChangeStateRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var equipment = await repository.GetByIdAsync(id, cancellationToken);
-        if (equipment is null)
-            return null; // TODO throw instead of returning null
-
-        var previousState = equipment.State;
-        equipment.ChangeState(request.State);
-
-        if (previousState != equipment.State)
-        {
-            await repository.UpdateAsync(equipment, cancellationToken);
-
-            var stateChangedEvent = new EquipmentStateChangedEvent(
-                equipment.Id,
-                equipment.Name,
-                equipment.State,
-                equipment.StateChangedAt
-            );
-
-            await eventPublisher.PublishAsync(stateChangedEvent, cancellationToken);
-
-            logger.LogInformation(
-                "Equipment {EquipmentId} state changed from {PreviousState} to {NewState}",
-                equipment.Id, previousState, equipment.State);
-        }
-
-        return mapper.Map<EquipmentDto>(equipment);
-    }
-
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var equipment = await repository.GetByIdAsync(id, cancellationToken);
-        if (equipment is null)
-            return false;
-
-        await repository.DeleteAsync(id, cancellationToken);
-
-        logger.LogInformation("Deleted equipment {EquipmentId}", id);
-
-        return true;
     }
 }

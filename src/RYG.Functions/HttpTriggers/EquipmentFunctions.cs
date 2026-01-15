@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using FluentValidation;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.OpenApi.Models;
@@ -8,7 +9,6 @@ namespace RYG.Functions.HttpTriggers;
 public class EquipmentFunctions(
     IEquipmentService equipmentService,
     IValidator<CreateEquipmentRequest> createValidator,
-    IValidator<UpdateEquipmentRequest> updateValidator,
     IValidator<ChangeStateRequest> stateValidator,
     ILogger<EquipmentFunctions> logger)
 {
@@ -42,9 +42,16 @@ public class EquipmentFunctions(
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Getting equipment {EquipmentId}", id);
-        var equipment = await equipmentService.GetByIdAsync(id, cancellationToken);
+        try
+        {
+            var equipment = await equipmentService.GetByIdAsync(id, cancellationToken);
 
-        return equipment is null ? new NotFoundResult() : new OkObjectResult(equipment);
+            return new OkObjectResult(equipment);
+        }
+        catch (Exception e)
+        {
+            return new BadRequestObjectResult(e.Message);
+        }
     }
 
     [Function("CreateEquipment")]
@@ -60,49 +67,24 @@ public class EquipmentFunctions(
         HttpRequest req,
         CancellationToken cancellationToken)
     {
-        var request = await req.ReadFromJsonAsync<CreateEquipmentRequest>(cancellationToken);
-        if (request is null)
-            return new BadRequestObjectResult("Invalid request body");
+        try
+        {
+            var request = await req.ReadFromJsonAsync<CreateEquipmentRequest>(cancellationToken) ??
+                          throw new JsonException();
 
-        var validationResult = await createValidator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-            return new BadRequestObjectResult(validationResult.Errors.Select(e => e.ErrorMessage));
+            var validationResult = await createValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                return new BadRequestObjectResult(validationResult.Errors.Select(e => e.ErrorMessage));
 
-        logger.LogInformation("Creating equipment with name {EquipmentName}", request.Name);
-        var equipment = await equipmentService.CreateAsync(request, cancellationToken);
+            logger.LogInformation("Creating equipment with name {EquipmentName}", request.Name);
+            var equipment = await equipmentService.CreateAsync(request, cancellationToken);
 
-        return new CreatedResult($"/api/equipment/{equipment.Id}", equipment);
-    }
-
-    [Function("UpdateEquipment")]
-    [OpenApiOperation("UpdateEquipment", "Equipment", Summary = "Update equipment",
-        Description = "Updates the name of an existing equipment item")]
-    [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Type = typeof(Guid),
-        Description = "Equipment ID")]
-    [OpenApiRequestBody("application/json", typeof(UpdateEquipmentRequest), Required = true,
-        Description = "Equipment update request")]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(EquipmentDto),
-        Description = "Equipment updated")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "Equipment not found")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request")]
-    public async Task<IActionResult> Update(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "equipment/{id:guid}")]
-        HttpRequest req,
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        var request = await req.ReadFromJsonAsync<UpdateEquipmentRequest>(cancellationToken);
-        if (request is null)
-            return new BadRequestObjectResult("Invalid request body");
-
-        var validationResult = await updateValidator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-            return new BadRequestObjectResult(validationResult.Errors.Select(e => e.ErrorMessage));
-
-        logger.LogInformation("Updating equipment {EquipmentId}", id);
-        var equipment = await equipmentService.UpdateAsync(id, request, cancellationToken);
-
-        return equipment is null ? new NotFoundResult() : new OkObjectResult(equipment);
+            return new CreatedResult($"/api/equipment/{equipment.Id}", equipment);
+        }
+        catch (Exception e)
+        {
+            return new BadRequestObjectResult(e.Message);
+        }
     }
 
     [Function("ChangeEquipmentState")]
@@ -122,36 +104,23 @@ public class EquipmentFunctions(
         Guid id,
         CancellationToken cancellationToken)
     {
-        var request = await req.ReadFromJsonAsync<ChangeStateRequest>(cancellationToken);
-        if (request is null)
-            return new BadRequestObjectResult("Invalid request body");
+        try
+        {
+            var request = await req.ReadFromJsonAsync<ChangeStateRequest>(cancellationToken) ??
+                          throw new JsonException();
 
-        var validationResult = await stateValidator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-            return new BadRequestObjectResult(validationResult.Errors.Select(e => e.ErrorMessage));
+            var validationResult = await stateValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                return new BadRequestObjectResult(validationResult.Errors.Select(e => e.ErrorMessage));
 
-        logger.LogInformation("Changing state of equipment {EquipmentId} to {State}", id, request.State);
-        var equipment = await equipmentService.ChangeStateAsync(id, request, cancellationToken);
+            logger.LogInformation("Changing state of equipment {EquipmentId} to {State}", id, request.State);
+            var equipment = await equipmentService.ChangeStateAsync(id, request, cancellationToken);
 
-        return equipment is null ? new NotFoundResult() : new OkObjectResult(equipment);
-    }
-
-    [Function("DeleteEquipment")]
-    [OpenApiOperation("DeleteEquipment", "Equipment", Summary = "Delete equipment",
-        Description = "Deletes an equipment item by its ID")]
-    [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Type = typeof(Guid),
-        Description = "Equipment ID")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Equipment deleted")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "Equipment not found")]
-    public async Task<IActionResult> Delete(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "equipment/{id:guid}")]
-        HttpRequest req,
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        logger.LogInformation("Deleting equipment {EquipmentId}", id);
-        var deleted = await equipmentService.DeleteAsync(id, cancellationToken);
-
-        return deleted ? new NoContentResult() : new NotFoundResult();
+            return new OkObjectResult(equipment);
+        }
+        catch (Exception e)
+        {
+            return new BadRequestObjectResult(e.Message);
+        }
     }
 }

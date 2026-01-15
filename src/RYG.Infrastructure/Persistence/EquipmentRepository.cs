@@ -1,10 +1,12 @@
+using RYG.Domain.Exceptions;
+
 namespace RYG.Infrastructure.Persistence;
 
 public class EquipmentRepository(AppDbContext context) : IEquipmentRepository
 {
-    public async Task<Equipment?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Equipment> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await context.Equipment.FindAsync([id], cancellationToken);
+        return await context.Equipment.FindAsync([id], cancellationToken) ?? throw new EquipmentNotFoundException(id);
     }
 
     public async Task<IEnumerable<Equipment>> GetAllAsync(CancellationToken cancellationToken = default)

@@ -37,7 +37,7 @@ public class EquipmentServiceTests
     public async Task GetByIdAsync_ShouldReturnNull_WhenEquipmentNotFound()
     {
         var id = _fixture.Create<Guid>();
-        _repositoryMock.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))!
             .ReturnsAsync((Equipment?)null);
 
         var result = await _service.GetByIdAsync(id);
@@ -83,32 +83,5 @@ public class EquipmentServiceTests
         _eventPublisherMock.Verify(
             e => e.PublishAsync(It.IsAny<EquipmentStateChangedEvent>(), It.IsAny<CancellationToken>()),
             Times.Never);
-    }
-
-    [Fact]
-    public async Task DeleteAsync_ShouldReturnFalse_WhenEquipmentNotFound()
-    {
-        var id = _fixture.Create<Guid>();
-        _repositoryMock.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Equipment?)null);
-
-        var result = await _service.DeleteAsync(id);
-
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task DeleteAsync_ShouldReturnTrue_WhenEquipmentDeleted()
-    {
-        var equipment = Equipment.Create(_fixture.Create<string>());
-        var id = equipment.Id;
-
-        _repositoryMock.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(equipment);
-
-        var result = await _service.DeleteAsync(id);
-
-        result.Should().BeTrue();
-        _repositoryMock.Verify(r => r.DeleteAsync(id, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -11,6 +11,7 @@ public class Equipment
     public Guid Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public EquipmentState State { get; private set; }
+    public Guid? CurrentOrderId { get; private set; }
     public DateTime StateChangedAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
@@ -34,10 +35,5 @@ public class Equipment
 
         State = newState;
         StateChangedAt = DateTime.UtcNow;
-    }
-
-    public void UpdateName(string name)
-    {
-        Name = name;
     }
 }

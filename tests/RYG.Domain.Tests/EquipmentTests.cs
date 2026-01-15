@@ -55,17 +55,6 @@ public class EquipmentTests
         equipment.StateChangedAt.Should().Be(originalStateChangedAt);
     }
 
-    [Fact]
-    public void UpdateName_ShouldUpdateEquipmentName()
-    {
-        var equipment = Equipment.Create(_fixture.Create<string>());
-        var newName = _fixture.Create<string>();
-
-        equipment.UpdateName(newName);
-
-        equipment.Name.Should().Be(newName);
-    }
-
     [Theory]
     [InlineData(EquipmentState.Red, EquipmentState.Yellow)]
     [InlineData(EquipmentState.Yellow, EquipmentState.Green)]

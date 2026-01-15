@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<MappingProfile>(); // TODO register all
 
         services.AddScoped<IEquipmentService, EquipmentService>();
+        services.AddSingleton<IOrderService, OrderService>();
 
         return services;
     }
