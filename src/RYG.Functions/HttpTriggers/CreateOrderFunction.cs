@@ -5,10 +5,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 
 namespace RYG.Functions.HttpTriggers;
 
-public class OrderFunctions(
+public class CreateOrderFunction(
     IOrderService orderService,
     IValidator<CreateOrderRequest> createValidator,
-    ILogger<OrderFunctions> logger)
+    ILogger<CreateOrderFunction> logger)
 {
     [Function("CreateOrder")]
     [OpenApiOperation("CreateOrder", "Orders", Summary = "Create new order",

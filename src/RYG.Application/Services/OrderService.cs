@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
 using RYG.Application.DTOs;
+using RYG.Shared.Events;
 
 namespace RYG.Application.Services;
 
 public class OrderService(
     IEquipmentRepository equipmentRepository,
+    ISignalRPublisher signalRPublisher,
     ILogger<OrderService> logger) : IOrderService
 {
     private readonly ConcurrentQueue<Order> _orderQueue = new();
@@ -35,25 +37,41 @@ public class OrderService(
         logger.LogInformation("Processing order {OrderId} for equipment {EquipmentId}",
             order.Id, order.EquipmentId);
 
-        await PublishSupervisorDashboardAsync(cancellationToken);
+        await PublishScheduleOrdersAsync(equipment, order, cancellationToken);
 
-        // TODO publish to Operators Dashboard
+        await PublishSupervisorProdStatesForEquiopmentAsync(cancellationToken);
+
         logger.LogInformation("Completed order {OrderId}", order.Id);
     }
 
-    private async Task PublishSupervisorDashboardAsync(CancellationToken cancellationToken)
+    // Stretch goal: publish currently performing + scheduled orders
+    private async Task PublishScheduleOrdersAsync(Equipment equipment, Order order, CancellationToken cancellationToken)
+    {
+        var allScheduledOrdersForEquipment = _orderQueue.Where(f => f.EquipmentId == equipment.Id);
+        var scheduledOrders = allScheduledOrdersForEquipment
+            .Select(a =>
+                new ScheduledOrders("", a.EquipmentId, order.Id, a.ScheduledAt))
+            .Where(o => o.OrderId != order.Id)
+            .ToList();
+
+        var orderProcessingEvent = new OrderProcessingEvent(equipment.Name, order.Id, scheduledOrders);
+
+        await signalRPublisher.SendToClientAsync(orderProcessingEvent, "orderProcessing", cancellationToken);
+    }
+
+    // Stretch goal: publish production states for supervisor view
+    private async Task PublishSupervisorProdStatesForEquiopmentAsync(CancellationToken cancellationToken)
     {
         var allEquipment = await equipmentRepository.GetAllAsync(cancellationToken);
-        var equipmentWithOrders = new List<EquipmentWithOrdersInfo>();
+        var equipmentWithOrders = new List<EquipmentWithOrdersEvent>();
 
         foreach (var eq in allEquipment)
-            equipmentWithOrders.Add(new EquipmentWithOrdersInfo(
+            equipmentWithOrders.Add(new EquipmentWithOrdersEvent(
                 eq.Id,
                 eq.Name,
                 eq.State,
                 eq.CurrentOrderId));
 
-        var dashboardEvent = new SupervisorDashboardEvent(equipmentWithOrders);
-        // TODO Push to signalR
+        await signalRPublisher.SendToClientAsync(equipmentWithOrders, "equipmentWithOrders", cancellationToken);
     }
 }

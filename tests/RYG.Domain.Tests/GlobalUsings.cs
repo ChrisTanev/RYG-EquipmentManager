@@ -4,4 +4,4 @@ global using AutoFixture;
 global using FluentAssertions;
 global using Xunit;
 global using RYG.Domain.Entities;
-global using RYG.Domain.Enums;
+global using RYG.Shared.Enums;

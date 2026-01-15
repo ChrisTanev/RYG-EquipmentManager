@@ -5,12 +5,14 @@ public class OrderServiceTests
     private readonly Mock<IEquipmentRepository> _equipmentRepositoryMock = new();
     private readonly Fixture _fixture = new();
     private readonly Mock<ILogger<OrderService>> _loggerMock = new();
+    private readonly Mock<ISignalRPublisher> _publisher = new();
     private readonly OrderService _service;
 
     public OrderServiceTests()
     {
         _service = new OrderService(
             _equipmentRepositoryMock.Object,
+            _publisher.Object,
             _loggerMock.Object);
     }
 

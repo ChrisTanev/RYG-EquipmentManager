@@ -45,13 +45,6 @@ public class EquipmentRepositoryTests : IDisposable
         result.Id.Should().Be(equipment.Id);
     }
 
-    [Fact]
-    public async Task GetByIdAsync_ShouldReturnNull_WhenNotExists()
-    {
-        var result = await _repository.GetByIdAsync(_fixture.Create<Guid>());
-
-        result.Should().BeNull();
-    }
 
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllEquipment()

@@ -1,27 +1,22 @@
 using System.Text.Json;
+using RYG.Domain.Interfaces;
 
 namespace RYG.Functions.ServiceBusTriggers;
 
-public class StateChangedSubscriber(ILogger<StateChangedSubscriber> logger)
+public class StateChangedSubscriber(
+    ISignalRPublisher signalRPublisher,
+    ILogger<StateChangedSubscriber> logger)
 {
     [Function("StateChangedSubscriber")]
     [SignalROutput(HubName = "equipment", ConnectionStringSetting = "AzureSignalRConnectionString")]
-    public SignalRMessageAction Run(
+    public async Task Run(
         [ServiceBusTrigger("equipment-events", "state-changed-subscription", Connection = "ServiceBusConnection")]
         string messageBody)
     {
         logger.LogInformation("Received state changed event: {Message}", messageBody);
 
-        var stateChangedEvent = JsonSerializer.Deserialize<EquipmentStateChangedEvent>(messageBody);
-
-        if (stateChangedEvent is null) // TODO throw instead?
-        {
-            logger.LogWarning("Failed to deserialize state changed event");
-            return new SignalRMessageAction("equipmentStateChanged")
-            {
-                Arguments = [messageBody]
-            };
-        }
+        var stateChangedEvent = JsonSerializer.Deserialize<EquipmentStateChangedEvent>(messageBody) ??
+                                throw new JsonException();
 
         logger.LogInformation(
             "Equipment {EquipmentId} ({EquipmentName}) state changed to {NewState}",
@@ -29,9 +24,6 @@ public class StateChangedSubscriber(ILogger<StateChangedSubscriber> logger)
             stateChangedEvent.EquipmentName,
             stateChangedEvent.NewState);
 
-        return new SignalRMessageAction("equipmentStateChanged")
-        {
-            Arguments = [stateChangedEvent]
-        };
+        await signalRPublisher.SendToClientAsync(stateChangedEvent, "equipmentStateChanged");
     }
 }

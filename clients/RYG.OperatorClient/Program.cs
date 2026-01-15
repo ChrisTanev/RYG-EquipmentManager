@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
+using RYG.Shared.Events;
 
 var baseUrl = args.Length > 0 ? args[0] : "http://localhost:7071/api";
 
@@ -36,7 +37,42 @@ connection.Reconnected += connectionId =>
     return Task.CompletedTask;
 };
 
-// Listen to order processing events
+// Goal : operators see equipment state changes in real-time
+connection.On<JsonElement>("equipmentStateChanged", eventData =>
+{
+    try
+    {
+        var stateEvent = eventData.Deserialize<EquipmentStateChangedEvent>(
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new JsonException();
+
+        Console.WriteLine(
+            $"[{DateTime.Now:HH:mm:ss}] EQUIPMENT STATE: {stateEvent.EquipmentName} → {stateEvent.NewState}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] Failed to process state event: {ex.Message}");
+    }
+});
+
+// Goal : operators see an overview of all equipment states periodically
+connection.On<JsonElement>("equipmentStatesOverview", eventData =>
+{
+    try
+    {
+        var equipmentStatesOverviewEvent = eventData.Deserialize<IEnumerable<EquipmentStatesOverviewEvent>>(
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new JsonException();
+
+        foreach (var eqipment in equipmentStatesOverviewEvent)
+            Console.WriteLine(
+                $"[{DateTime.Now:HH:mm:ss}] EQUIPMENT NAME: {eqipment.Name} EQUIPMENT STATE: {eqipment.State}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] Failed to process state event: {ex.Message}");
+    }
+});
+
+// Stretch : operators see current order processing events and which orders are scheduled next
 connection.On<JsonElement>("orderProcessing", eventData =>
 {
     try
@@ -49,16 +85,15 @@ connection.On<JsonElement>("orderProcessing", eventData =>
         Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] === ORDER PROCESSING ===");
         Console.WriteLine($"Equipment: {processingEvent.EquipmentName}");
         Console.WriteLine($"Order ID: {processingEvent.OrderId}");
-        Console.WriteLine($"Description: {processingEvent.OrderDescription}");
-        Console.WriteLine($"Started At: {processingEvent.StartedAt:yyyy-MM-dd HH:mm:ss}");
-
         if (processingEvent.ScheduledOrders.Any())
         {
             Console.WriteLine($"\nUpcoming Orders ({processingEvent.ScheduledOrders.Count()}):");
             foreach (var order in processingEvent.ScheduledOrders)
             {
-                Console.WriteLine($"  - {order.Description}");
-                Console.WriteLine($"    Priority: {order.Priority}, Scheduled: {order.ScheduledAt:yyyy-MM-dd HH:mm}");
+                Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] === ORDER PROCESSING ===");
+                Console.WriteLine($"Equipment: {order.EquipmentName}");
+                Console.WriteLine($"Order ID: {order.OrderId}");
+                Console.WriteLine($"Order ScheduledAt: {order.ScheduledAt}");
             }
         }
         else
@@ -71,32 +106,6 @@ connection.On<JsonElement>("orderProcessing", eventData =>
     catch (Exception ex)
     {
         Console.WriteLine($"[ERROR] Failed to process order event: {ex.Message}");
-    }
-});
-
-// Also listen to equipment state changes
-connection.On<JsonElement>("equipmentStateChanged", eventData =>
-{
-    try
-    {
-        var stateEvent = eventData.Deserialize<EquipmentStateChangedEvent>(
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-        if (stateEvent is null) return;
-
-        var stateColor = stateEvent.NewState switch
-        {
-            0 => "RED",
-            1 => "YELLOW",
-            2 => "GREEN",
-            _ => "UNKNOWN"
-        };
-
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] EQUIPMENT STATE: {stateEvent.EquipmentName} → {stateColor}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[ERROR] Failed to process state event: {ex.Message}");
     }
 });
 
@@ -118,21 +127,3 @@ catch (Exception ex)
 }
 
 return 0;
-
-// Event DTOs
-public record OrderProcessingEvent(
-    Guid OrderId,
-    Guid EquipmentId,
-    string EquipmentName,
-    string OrderDescription,
-    DateTime StartedAt,
-    IEnumerable<ScheduledOrderInfo> ScheduledOrders);
-
-public record ScheduledOrderInfo(Guid OrderId, string Description, int Priority, DateTime ScheduledAt);
-
-public record EquipmentStateChangedEvent(
-    Guid EquipmentId,
-    string EquipmentName,
-    int NewState,
-    Guid? CurrentOrderId,
-    DateTime ChangedAt);

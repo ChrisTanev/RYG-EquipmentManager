@@ -1,4 +1,4 @@
-using RYG.Domain.Enums;
+using RYG.Shared.Enums;
 
 namespace RYG.Domain.Entities;
 

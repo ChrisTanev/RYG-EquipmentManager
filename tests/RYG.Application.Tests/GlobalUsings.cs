@@ -12,6 +12,6 @@ global using RYG.Application.Mappings;
 global using RYG.Application.Services;
 global using RYG.Application.Validators;
 global using RYG.Domain.Entities;
-global using RYG.Domain.Enums;
-global using RYG.Domain.Events;
+global using RYG.Shared.Enums;
+global using RYG.Shared.Events;
 global using RYG.Domain.Interfaces;

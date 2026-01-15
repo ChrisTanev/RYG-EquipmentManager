@@ -7,6 +7,7 @@ public interface IEquipmentService
     Task<EquipmentDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<EquipmentDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<EquipmentDto> CreateAsync(CreateEquipmentRequest request, CancellationToken cancellationToken = default);
+    Task PublishEquipmentStateOverviewAsync(CancellationToken cancellationToken = default);
 
     Task<EquipmentDto> ChangeStateAsync(Guid id, ChangeStateRequest request,
         CancellationToken cancellationToken = default);

@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
             builder.AddSerilog();
         });
 
+
         var connectionString = configuration.GetConnectionString("Database")
                                ?? "Data Source=equipment.db";
 
@@ -30,7 +31,7 @@ public static class ServiceCollectionExtensions
             options.UseSqlite(connectionString));
 
         services.AddScoped<IEquipmentRepository, EquipmentRepository>();
-
+        services.AddScoped<ISignalRPublisher, SignalRPublisher>();
         var serviceBusConnectionString = configuration.GetConnectionString("ServiceBus");
         var topicName = configuration["ServiceBus:TopicName"] ?? "equipment-events";
 

@@ -6,7 +6,7 @@ public class ProcessOrdersTimer(
 {
     [Function("ProcessOrdersTimer")]
     public async Task Run(
-        [TimerTrigger("0 */1 * * * *")] TimerInfo timerInfo,
+        [TimerTrigger("0 */10 * * * *")] TimerInfo timerInfo,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("ProcessOrdersTimer triggered at {Time}", DateTime.UtcNow);

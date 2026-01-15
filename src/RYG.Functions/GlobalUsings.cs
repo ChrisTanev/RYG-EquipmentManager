@@ -7,5 +7,5 @@ global using Microsoft.Azure.Functions.Worker;
 global using Microsoft.Extensions.Logging;
 global using RYG.Application.DTOs;
 global using RYG.Application.Services;
-global using RYG.Domain.Enums;
-global using RYG.Domain.Events;
+global using RYG.Shared.Enums;
+global using RYG.Shared.Events;

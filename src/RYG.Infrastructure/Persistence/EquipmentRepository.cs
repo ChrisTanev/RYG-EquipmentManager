@@ -29,10 +29,7 @@ public class EquipmentRepository(AppDbContext context) : IEquipmentRepository
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var equipment = await GetByIdAsync(id, cancellationToken);
-        if (equipment is not null)
-        {
-            context.Equipment.Remove(equipment);
-            await context.SaveChangesAsync(cancellationToken);
-        }
+        context.Equipment.Remove(equipment);
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

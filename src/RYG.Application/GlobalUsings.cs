@@ -4,6 +4,5 @@ global using System.Threading;
 global using System.Threading.Tasks;
 global using Microsoft.Extensions.Logging;
 global using RYG.Domain.Entities;
-global using RYG.Domain.Enums;
-global using RYG.Domain.Events;
 global using RYG.Domain.Interfaces;
+global using RYG.Shared.Enums;

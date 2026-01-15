@@ -1,6 +1,7 @@
 using AutoMapper;
 using RYG.Application.DTOs;
 using RYG.Domain.Exceptions;
+using RYG.Shared.Events;
 
 namespace RYG.Application.Services;
 
@@ -8,11 +9,13 @@ public class EquipmentService(
     IEquipmentRepository repository,
     IEventPublisher eventPublisher,
     IMapper mapper,
+    ISignalRPublisher signalRPublisher,
     ILogger<EquipmentService> logger) : IEquipmentService
 {
     public async Task<EquipmentDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var equipment = await repository.GetByIdAsync(id, cancellationToken) ?? throw new EquipmentNotFoundException(id);
+        var equipment = await repository.GetByIdAsync(id, cancellationToken) ??
+                        throw new EquipmentNotFoundException(id);
         return mapper.Map<EquipmentDto>(equipment);
     }
 
@@ -32,6 +35,17 @@ public class EquipmentService(
             equipment.Id, equipment.Name, equipment.State);
 
         return mapper.Map<EquipmentDto>(equipment);
+    }
+
+    public async Task PublishEquipmentStateOverviewAsync(CancellationToken cancellationToken = default)
+    {
+        var allEquipment = (await repository.GetAllAsync(cancellationToken)).ToList();
+
+        var equipmentOverview = allEquipment.Select(e => new EquipmentStatesOverviewEvent(
+            e.Name,
+            e.State));
+
+        await signalRPublisher.SendToClientAsync(equipmentOverview, "equipmentStatesOverview", cancellationToken);
     }
 
     public async Task<EquipmentDto> ChangeStateAsync(Guid id, ChangeStateRequest request,

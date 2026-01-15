@@ -1,6 +1,6 @@
-using RYG.Domain.Enums;
+using RYG.Shared.Enums;
 
-namespace RYG.Domain.Events;
+namespace RYG.Shared.Events;
 
 public record EquipmentStateChangedEvent(
     Guid EquipmentId,

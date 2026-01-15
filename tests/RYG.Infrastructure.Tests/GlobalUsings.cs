@@ -7,5 +7,5 @@ global using FluentAssertions;
 global using Microsoft.EntityFrameworkCore;
 global using Xunit;
 global using RYG.Domain.Entities;
-global using RYG.Domain.Enums;
+global using RYG.Shared.Enums;
 global using RYG.Infrastructure.Persistence;

@@ -1,4 +1,4 @@
-namespace RYG.Domain.Enums;
+namespace RYG.Shared.Enums;
 
 public enum EquipmentState
 {
