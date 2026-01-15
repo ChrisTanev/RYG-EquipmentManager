@@ -3,14 +3,15 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using RYG.Shared.Events;
 
-var baseUrl = args.Length > 0 ? args[0] : "http://localhost:7071/api";
+// SignalR Hub URL (not Functions API URL)
+var signalRHubUrl = args.Length > 0 ? args[0] : "http://localhost:5000/equipmentHub";
 
 Console.WriteLine("=== RYG Operator Dashboard ===");
-Console.WriteLine($"Connecting to: {baseUrl}");
+Console.WriteLine($"Connecting to SignalR Hub: {signalRHubUrl}");
 Console.WriteLine();
 
 var connection = new HubConnectionBuilder()
-    .WithUrl($"{baseUrl}/negotiate")
+    .WithUrl(signalRHubUrl)
     .WithAutomaticReconnect()
     .ConfigureLogging(logging =>
     {

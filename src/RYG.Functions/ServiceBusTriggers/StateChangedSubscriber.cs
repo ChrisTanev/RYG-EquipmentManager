@@ -8,7 +8,6 @@ public class StateChangedSubscriber(
     ILogger<StateChangedSubscriber> logger)
 {
     [Function("StateChangedSubscriber")]
-    [SignalROutput(HubName = "equipment", ConnectionStringSetting = "AzureSignalRConnectionString")]
     public async Task Run(
         [ServiceBusTrigger("equipment-events", "state-changed-subscription", Connection = "ServiceBusConnection")]
         string messageBody)

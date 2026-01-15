@@ -4,6 +4,7 @@ using RYG.Shared.Events;
 
 namespace RYG.Application.Services;
 
+// TODO should be backed by persistent storage in real application
 public class OrderService(
     IEquipmentRepository equipmentRepository,
     ISignalRPublisher signalRPublisher,

@@ -18,7 +18,7 @@ builder.Services.AddSingleton<IOpenApiConfigurationOptions>(_ =>
         {
             Title = "RYG Equipment Manager API",
             Version = "1.0.0",
-            Description = "API for managing equipment states (Red/Yellow/Green) in a LEGO factory"
+            Description = "API for managing equipment states (Red/Yellow/Green)"
         }
     });
 

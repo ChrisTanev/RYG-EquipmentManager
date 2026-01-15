@@ -13,6 +13,12 @@ services:
     volumes:
       - azurite-data:/data
     command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+    networks:
+      - ryg-network
+
+networks:
+  ryg-network:
+    driver: bridge
 
 volumes:
   azurite-data:

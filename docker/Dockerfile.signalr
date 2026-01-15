@@ -7,10 +7,10 @@ COPY src/RYG.Domain/*.csproj ./src/RYG.Domain/
 COPY src/RYG.Application/*.csproj ./src/RYG.Application/
 COPY src/RYG.Infrastructure/*.csproj ./src/RYG.Infrastructure/
 COPY src/RYG.Shared/*.csproj ./src/RYG.Shared/
-COPY src/RYG.Functions/*.csproj ./src/RYG.Functions/
+COPY src/RYG.SignalRHubHost/*.csproj ./src/RYG.SignalRHubHost/
 
 # Restore dependencies
-WORKDIR /src/src/RYG.Functions
+WORKDIR /src/src/RYG.SignalRHubHost
 RUN dotnet restore
 
 # Copy source code
@@ -18,13 +18,14 @@ WORKDIR /src
 COPY src/ ./src/
 
 # Build and publish
-WORKDIR /src/src/RYG.Functions
+WORKDIR /src/src/RYG.SignalRHubHost
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # Runtime stage
-FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated9.0
-WORKDIR /home/site/wwwroot
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
 COPY --from=build /app/publish .
 
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot
-ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+EXPOSE 80 443
+
+ENTRYPOINT ["dotnet", "RYG.SignalRHubHost.dll"]

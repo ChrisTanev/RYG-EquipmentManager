@@ -1,0 +1,127 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Docker: Attach to Functions",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickRemoteProcess}",
+      "pipeTransport": {
+        "pipeProgram": "docker",
+        "pipeArgs": ["exec", "-i", "ryg-functions"],
+        "debuggerPath": "/vsdbg/vsdbg",
+        "pipeCwd": "${workspaceRoot}",
+        "quoteArgs": false
+      },
+      "sourceFileMap": {
+        "/src": "${workspaceFolder}"
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Docker: Attach to SignalR Hub",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickRemoteProcess}",
+      "pipeTransport": {
+        "pipeProgram": "docker",
+        "pipeArgs": ["exec", "-i", "ryg-signalr-hub"],
+        "debuggerPath": "/vsdbg/vsdbg",
+        "pipeCwd": "${workspaceRoot}",
+        "quoteArgs": false
+      },
+      "sourceFileMap": {
+        "/src": "${workspaceFolder}"
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Local: Functions (F5)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/RYG.Functions/bin/Debug/net9.0/RYG.Functions.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/RYG.Functions",
+      "stopAtEntry": false,
+      "env": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
+      }
+    },
+    {
+      "name": "Local: SignalR Hub (F5)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/RYG.SignalRHubHost/bin/Debug/net9.0/RYG.SignalRHubHost.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/RYG.SignalRHubHost",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Local: HMI Client",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/clients/RYG.HmiClient/bin/Debug/net9.0/RYG.HmiClient.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/clients/RYG.HmiClient",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Local: Operator Client",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/clients/RYG.OperatorClient/bin/Debug/net9.0/RYG.OperatorClient.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/clients/RYG.OperatorClient",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Local: Supervisor Client",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/clients/RYG.SupervisorClient/bin/Debug/net9.0/RYG.SupervisorClient.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/clients/RYG.SupervisorClient",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Docker: All Services",
+      "configurations": [
+        "Docker: Attach to Functions",
+        "Docker: Attach to SignalR Hub"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "hidden": false,
+        "group": "Docker",
+        "order": 1
+      }
+    },
+    {
+      "name": "Local: Full System",
+      "configurations": [
+        "Local: Functions (F5)",
+        "Local: SignalR Hub (F5)"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "hidden": false,
+        "group": "Local",
+        "order": 2
+      }
+    }
+  ]
+}

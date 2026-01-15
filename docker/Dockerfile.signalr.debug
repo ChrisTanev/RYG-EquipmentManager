@@ -1,0 +1,39 @@
+# Debug stage for SignalR Hub Host
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+WORKDIR /src
+
+# Install debugger (vsdbg)
+RUN apt-get update && \
+    apt-get install -y unzip curl && \
+    curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy project files
+COPY src/RYG.Domain/*.csproj ./src/RYG.Domain/
+COPY src/RYG.Application/*.csproj ./src/RYG.Application/
+COPY src/RYG.Infrastructure/*.csproj ./src/RYG.Infrastructure/
+COPY src/RYG.Shared/*.csproj ./src/RYG.Shared/
+COPY src/RYG.SignalRHubHost/*.csproj ./src/RYG.SignalRHubHost/
+
+# Restore dependencies from SignalR directory
+WORKDIR /src/src/RYG.SignalRHubHost
+RUN dotnet restore
+
+WORKDIR /src
+
+# Copy source code
+COPY src/ ./src/
+
+# Set working directory to SignalR project
+WORKDIR /src/src/RYG.SignalRHubHost
+
+# Expose ports
+EXPOSE 80 5000 5679
+
+# Environment variables
+ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+# Run with dotnet run for debugging support
+CMD ["dotnet", "run"]

@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
             .ReadFrom.Configuration(configuration)
             .Enrich.FromLogContext()
             .WriteTo.Console()
+            .WriteTo.Seq("http://localhost:5341")
             .CreateLogger();
 
         services.AddLogging(builder =>
@@ -31,7 +32,15 @@ public static class ServiceCollectionExtensions
             options.UseSqlite(connectionString));
 
         services.AddScoped<IEquipmentRepository, EquipmentRepository>();
-        services.AddScoped<ISignalRPublisher, SignalRPublisher>();
+
+        // Configure HttpClient for SignalR Hub communication
+        var signalRHubUrl = configuration["SignalR:HubUrl"] ?? "http://localhost:5000";
+        services.AddHttpClient<ISignalRPublisher, HttpSignalRPublisher>(client =>
+        {
+            client.BaseAddress = new Uri(signalRHubUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         var serviceBusConnectionString = configuration.GetConnectionString("ServiceBus");
         var topicName = configuration["ServiceBus:TopicName"] ?? "equipment-events";
 

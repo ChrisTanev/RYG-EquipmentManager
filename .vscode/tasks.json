@@ -1,0 +1,120 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/RYG-EquipmentManager.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "clean",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "clean",
+        "${workspaceFolder}/RYG-EquipmentManager.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "${workspaceFolder}/RYG-EquipmentManager.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "docker-up",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": [
+        "-f",
+        "${workspaceFolder}/docker/docker-compose.yml",
+        "up",
+        "-d"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/docker"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-up-debug",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": [
+        "-f",
+        "${workspaceFolder}/docker/docker-compose.yml",
+        "-f",
+        "${workspaceFolder}/docker/docker-compose.debug.yml",
+        "up",
+        "--build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/docker"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "docker-down",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": [
+        "-f",
+        "${workspaceFolder}/docker/docker-compose.yml",
+        "down"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/docker"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-logs-functions",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "logs",
+        "-f",
+        "ryg-functions"
+      ],
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "docker-logs-signalr",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "logs",
+        "-f",
+        "ryg-signalr-hub"
+      ],
+      "problemMatcher": [],
+      "isBackground": true
+    }
+  ]
+}

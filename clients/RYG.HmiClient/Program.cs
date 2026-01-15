@@ -2,17 +2,18 @@ using System.Text.Json;
 using Microsoft.AspNetCore.SignalR.Client;
 using Spectre.Console;
 
-var baseUrl = args.Length > 0 ? args[0] : "http://localhost:7071/api";
+// SignalR Hub URL (not Functions API URL)
+var signalRHubUrl = args.Length > 0 ? args[0] : "http://localhost:5000/equipmentHub";
 
 AnsiConsole.MarkupLine("[bold blue]RYG Equipment Monitor[/]");
-AnsiConsole.MarkupLine($"Connecting to: [yellow]{baseUrl}[/]");
+AnsiConsole.MarkupLine($"Connecting to SignalR Hub: [yellow]{signalRHubUrl}[/]");
 
 var equipmentStates = new Dictionary<Guid, EquipmentStateInfo>();
 var eventLog = new List<string>();
 const int maxLogEntries = 10;
 
 var connection = new HubConnectionBuilder()
-    .WithUrl($"{baseUrl}/negotiate")
+    .WithUrl(signalRHubUrl)
     .WithAutomaticReconnect()
     .Build();
 
