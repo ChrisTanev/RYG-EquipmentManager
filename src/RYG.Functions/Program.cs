@@ -1,55 +1,77 @@
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using RYG.Application.Extensions;
 using RYG.Infrastructure.Extensions;
 using Serilog;
+using Serilog.Debugging;
 
-// Configure Serilog early
+// Enable Serilog self-logging to console with more detail
+SelfLog.Enable(msg => Console.WriteLine($"SERILOG INTERNAL: {msg}"));
+
+// Configure Serilog before building
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(args.Length > 0 ? new ConfigurationBuilder()
-        .AddJsonFile("appsettings.json", optional: true)
-        .AddEnvironmentVariables()
-        .Build() : new ConfigurationBuilder().Build())
+    .MinimumLevel.Information()
     .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "RYG.Functions")
     .WriteTo.Console()
     .WriteTo.Seq(
         serverUrl: "http://seq:80",
-        bufferBaseFilename: "/data/seq-buffer")
+        apiKey: null,
+        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
     .CreateLogger();
 
-var builder = FunctionsApplication.CreateBuilder(args);
+try
+{
+    var builder = FunctionsApplication.CreateBuilder(args);
 
-builder.ConfigureFunctionsWebApplication();
+    builder.ConfigureFunctionsWebApplication();
 
-// Use Serilog for all logging
-builder.Logging.ClearProviders();
-builder.Logging.AddSerilog(Log.Logger, dispose: true);
+    // Configure Serilog from appsettings.json
+    builder.Logging.ClearProviders();
+    var logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(builder.Configuration)
+        .CreateLogger();
 
-builder.Services.AddSingleton<IOpenApiConfigurationOptions>(_ =>
-    new OpenApiConfigurationOptions
-    {
-        Info = new OpenApiInfo
+    builder.Logging.AddSerilog(logger, dispose: true);
+
+    // Test logging
+    logger.Information("RYG Functions starting - Seq configured via appsettings.json");
+    logger.Warning("Test warning for Seq");
+    logger.Error("Test error for Seq");
+
+    builder.Services.AddSingleton<IOpenApiConfigurationOptions>(_ =>
+        new OpenApiConfigurationOptions
         {
-            Title = "RYG Equipment Manager API",
-            Version = "1.0.0",
-            Description = "API for managing equipment states (Red/Yellow/Green)"
-        }
-    });
+            Info = new OpenApiInfo
+            {
+                Title = "RYG Equipment Manager API",
+                Version = "1.0.0",
+                Description = "API for managing equipment states (Red/Yellow/Green)"
+            }
+        });
 
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddApplication();
+    builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+    builder.Services
+        .AddApplicationInsightsTelemetryWorkerService()
+        .ConfigureFunctionsApplicationInsights();
 
-var app = builder.Build();
+    var app = builder.Build();
 
-await app.Services.InitializeDatabaseAsync();
+    await app.Services.InitializeDatabaseAsync();
 
-app.Run();
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
+}

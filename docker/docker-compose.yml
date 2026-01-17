@@ -84,6 +84,7 @@ services:
       ConnectionStrings__ServiceBus: "Endpoint=sb://servicebus-emulator;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
       ServiceBus__TopicName: "equipment-events"
       SignalR__HubUrl: "http://signalr-hub:80"
+      Serilog__WriteTo__1__Args__apiKey: "DxUIhKRxyigXQTpHyXU6"
     volumes:
       - functions-data:/data
     networks:
@@ -115,7 +116,7 @@ services:
       - signalr-hub
     environment:
       SIGNALR_HUB_URL: "http://signalr-hub:80/equipmentHub"
-    command: ["http://signalr-hub:80/equipmentHub"]
+    command: [ "http://signalr-hub:80/equipmentHub" ]
     networks:
       - ryg-network
     stdin_open: true
@@ -132,7 +133,7 @@ services:
     environment:
       SIGNALR_HUB_URL: "http://signalr-hub:80/equipmentHub"
       TERM: "xterm-256color"
-    command: ["http://signalr-hub:80/equipmentHub"]
+    command: [ "http://signalr-hub:80/equipmentHub" ]
     networks:
       - ryg-network
     stdin_open: true
