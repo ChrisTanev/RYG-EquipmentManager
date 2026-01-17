@@ -45,7 +45,8 @@ public class EquipmentService(
             e.Name,
             e.State));
 
-        await signalRPublisher.SendToClientAsync(equipmentOverview, "equipmentStatesOverview", cancellationToken);
+        await signalRPublisher.SendToGroupAsync(equipmentOverview, "equipmentStatesOverview", "operators",
+            cancellationToken);
     }
 
     public async Task<EquipmentDto> ChangeStateAsync(Guid id, ChangeStateRequest request,
@@ -60,7 +61,6 @@ public class EquipmentService(
             equipment.Id,
             equipment.Name,
             equipment.State,
-            equipment.CurrentOrderId,
             equipment.StateChangedAt
         );
 

@@ -23,6 +23,6 @@ public class StateChangedSubscriber(
             stateChangedEvent.EquipmentName,
             stateChangedEvent.NewState);
 
-        await signalRPublisher.SendToClientAsync(stateChangedEvent, "equipmentStateChanged");
+        await signalRPublisher.SendToGroupAsync(stateChangedEvent, "equipmentStateChanged", "operators");
     }
 }

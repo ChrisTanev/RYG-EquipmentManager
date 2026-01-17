@@ -60,14 +60,18 @@ connection.On<JsonElement>("equipmentWithOrders", eventData =>
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new JsonException();
 
         var equipmentWithOrdersEvents = dashboardEvent.ToList();
-        Log.Information("Equipment dashboard update received with {Count} items", equipmentWithOrdersEvents.Count());
+        Log.Information("********************Supervisor - Equipment with orders ********************");
+
+        Log.Information("Equipment dashboard update received with → {Count} items", equipmentWithOrdersEvents.Count());
 
         foreach (var equipment in equipmentWithOrdersEvents)
         {
-            Log.Information($"\nEquipment: {equipment.EquipmentName} (ID: {equipment.EquipmentId})");
-            Log.Information($"  State: {equipment.State}");
-            Log.Information($"  Current Order: {equipment.CurrentOrderId?.ToString() ?? "None"}");
+            Log.Information($"\nEquipment→ {equipment.EquipmentName} (ID → {equipment.EquipmentId})");
+            Log.Information($"  State → {equipment.State}");
+            Log.Information($"  Current Order → {equipment.OrderId}");
         }
+
+        Log.Information("***************************************************************************");
     }
     catch (Exception ex)
     {
@@ -80,6 +84,11 @@ try
     await connection.StartAsync();
     Log.Information("Connected to SignalR hub");
     Log.Information($"[{DateTime.Now:HH:mm:ss}] Connected to SignalR hub");
+
+    // Join the supervisors group
+    await connection.InvokeAsync("JoinGroup", "supervisors");
+    Log.Information("Joined 'supervisors' group");
+
     Log.Information("Listening for supervisor dashboard events...");
     Log.Information("Press Ctrl+C to exit");
 

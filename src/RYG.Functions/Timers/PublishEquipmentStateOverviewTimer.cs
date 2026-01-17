@@ -6,7 +6,7 @@ public class PublishEquipmentStateOverviewTimer(
 {
     [Function("PublishEquipmentStateOverviewTimer")]
     public async Task Run(
-        [TimerTrigger("*/10 * * * * *")] TimerInfo timerInfo, CancellationToken cancellationToken)
+        [TimerTrigger("0/10 * * * * *")] TimerInfo timerInfo, CancellationToken cancellationToken)
     {
         logger.LogInformation("PublishEquipmentStateOverviewTimer triggered at {Time}", DateTime.UtcNow);
 

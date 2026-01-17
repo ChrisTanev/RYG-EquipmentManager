@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using RYG.Shared.Events;
 using Serilog;
 
+// TODO correlation id for tracing
 // Configure Serilog
 var seqUrl = Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341";
 Log.Logger = new LoggerConfiguration()
@@ -60,9 +61,10 @@ connection.On<JsonElement>("equipmentStateChanged", eventData =>
     {
         var stateEvent = eventData.Deserialize<EquipmentStateChangedEvent>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new JsonException();
-
+        Log.Information("********************OPERATOR - Equipment state changed ********************");
         Log.Information("Equipment state changed: {EquipmentName} → {NewState}",
             stateEvent.EquipmentName, stateEvent.NewState);
+        Log.Information("**************************************************************************");
     }
     catch (Exception ex)
     {
@@ -79,8 +81,13 @@ connection.On<JsonElement>("equipmentStatesOverview", eventData =>
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new JsonException();
 
         foreach (var eqipment in equipmentStatesOverviewEvent)
+        {
+            Log.Information("********************OPERATOR - Equipment state overview ********************");
+
             Log.Information(
-                $"[{DateTime.Now:HH:mm:ss}] EQUIPMENT NAME: {eqipment.Name} EQUIPMENT STATE: {eqipment.State}");
+                $"[{DateTime.Now:HH:mm:ss}] Equipment name → {eqipment.Name} Equipment state → {eqipment.State}");
+            Log.Information("****************************************************************************");
+        }
     }
     catch (Exception ex)
     {
@@ -98,6 +105,8 @@ connection.On<JsonElement>("orderProcessing", eventData =>
 
         if (processingEvent is null) return;
 
+        Log.Information("********************OPERATOR - Order processing ********************");
+
         Log.Information($"\n[{DateTime.Now:HH:mm:ss}] === ORDER PROCESSING ===");
         Log.Information($"Equipment: {processingEvent.EquipmentName}");
         Log.Information($"Order ID: {processingEvent.OrderId}");
@@ -106,16 +115,18 @@ connection.On<JsonElement>("orderProcessing", eventData =>
             Log.Information($"\nUpcoming Orders ({processingEvent.ScheduledOrders.Count()}):");
             foreach (var order in processingEvent.ScheduledOrders)
             {
-                Log.Information($"\n[{DateTime.Now:HH:mm:ss}] === ORDER PROCESSING ===");
                 Log.Information($"Equipment: {order.EquipmentName}");
+                Log.Information($"Equipment Id: {order.EquipmentId}");
                 Log.Information($"Order ID: {order.OrderId}");
                 Log.Information($"Order ScheduledAt: {order.ScheduledAt}");
             }
         }
         else
         {
-            Log.Information("\nUpcoming Orders: None");
+            Log.Information("\nNo scheduled orders.");
         }
+
+        Log.Information("*********************************************************");
     }
     catch (Exception ex)
     {
@@ -128,6 +139,11 @@ try
     await connection.StartAsync();
     Log.Information("Connected to SignalR hub");
     Log.Information($"[{DateTime.Now:HH:mm:ss}] Connected to SignalR hub");
+
+    // Join the operators group
+    await connection.InvokeAsync("JoinGroup", "operators");
+    Log.Information("Joined 'operators' group");
+
     Log.Information("Listening for order processing events...");
     Log.Information("Press Ctrl+C to exit");
 

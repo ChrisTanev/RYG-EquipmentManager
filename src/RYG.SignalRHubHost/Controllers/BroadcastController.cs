@@ -16,9 +16,17 @@ public class BroadcastController(IHubContext<EquipmentHub> hubContext, ILogger<B
         if (string.IsNullOrWhiteSpace(request.MethodName))
             return BadRequest("MethodName is required");
 
-        logger.LogInformation("Broadcasting SignalR message: {MethodName}", request.MethodName);
+        logger.LogInformation("Broadcasting SignalR message: {MethodName} to group: {Group}",
+            request.MethodName, request.GroupName ?? "All");
 
-        await hubContext.Clients.All.SendAsync(request.MethodName, request.Data);
+        if (!string.IsNullOrWhiteSpace(request.GroupName))
+        {
+            await hubContext.Clients.Group(request.GroupName).SendAsync(request.MethodName, request.Data);
+        }
+        else
+        {
+            await hubContext.Clients.All.SendAsync(request.MethodName, request.Data);
+        }
 
         return Ok();
     }
@@ -34,4 +42,5 @@ public record BroadcastRequest
 {
     public string MethodName { get; init; } = string.Empty;
     public object? Data { get; init; }
+    public string? GroupName { get; init; }
 }

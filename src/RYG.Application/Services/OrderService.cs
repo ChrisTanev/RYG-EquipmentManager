@@ -40,7 +40,7 @@ public class OrderService(
 
         await PublishScheduleOrdersAsync(equipment, order, cancellationToken);
 
-        await PublishSupervisorProdStatesForEquiopmentAsync(cancellationToken);
+        await PublishSupervisorProdStatesForEquiopmentAsync(order, cancellationToken);
 
         logger.LogInformation("Completed order {OrderId}", order.Id);
     }
@@ -57,11 +57,12 @@ public class OrderService(
 
         var orderProcessingEvent = new OrderProcessingEvent(equipment.Name, order.Id, scheduledOrders);
 
-        await signalRPublisher.SendToClientAsync(orderProcessingEvent, "orderProcessing", cancellationToken);
+        await signalRPublisher.SendToGroupAsync(orderProcessingEvent, "orderProcessing", "operators",
+            cancellationToken);
     }
 
     // Stretch goal: publish production states for supervisor view
-    private async Task PublishSupervisorProdStatesForEquiopmentAsync(CancellationToken cancellationToken)
+    private async Task PublishSupervisorProdStatesForEquiopmentAsync(Order order, CancellationToken cancellationToken)
     {
         var allEquipment = await equipmentRepository.GetAllAsync(cancellationToken);
         var equipmentWithOrders = new List<EquipmentWithOrdersEvent>();
@@ -71,8 +72,9 @@ public class OrderService(
                 eq.Id,
                 eq.Name,
                 eq.State,
-                eq.CurrentOrderId));
+                order.Id));
 
-        await signalRPublisher.SendToClientAsync(equipmentWithOrders, "equipmentWithOrders", cancellationToken);
+        await signalRPublisher.SendToGroupAsync(equipmentWithOrders, "equipmentWithOrders", "supervisors",
+            cancellationToken);
     }
 }

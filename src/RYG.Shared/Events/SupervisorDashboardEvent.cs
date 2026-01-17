@@ -6,5 +6,5 @@ public record EquipmentWithOrdersEvent(
     Guid EquipmentId,
     string EquipmentName,
     EquipmentState State,
-    Guid? CurrentOrderId
+    Guid OrderId
 );
