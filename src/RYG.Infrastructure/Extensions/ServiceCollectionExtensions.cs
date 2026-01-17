@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RYG.Infrastructure.Messaging;
 using RYG.Infrastructure.Persistence;
-using Serilog;
 
 namespace RYG.Infrastructure.Extensions;
 
@@ -11,20 +10,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .WriteTo.Seq("http://localhost:5341")
-            .CreateLogger();
-
-        services.AddLogging(builder =>
-        {
-            builder.ClearProviders();
-            builder.AddSerilog();
-        });
-
-
         var connectionString = configuration.GetConnectionString("Database")
                                ?? "Data Source=equipment.db";
 
