@@ -84,7 +84,7 @@ services:
       ConnectionStrings__ServiceBus: "Endpoint=sb://servicebus-emulator;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
       ServiceBus__TopicName: "equipment-events"
       SignalR__HubUrl: "http://signalr-hub:80"
-      Serilog__WriteTo__1__Args__apiKey: "DxUIhKRxyigXQTpHyXU6"
+      Serilog__WriteTo__1__Args__apiKey: "D85aSoyZUEQJPFh3ziVG  "
     volumes:
       - functions-data:/data
     networks:
@@ -114,25 +114,28 @@ services:
     container_name: ryg-operator-client
     depends_on:
       - signalr-hub
+      - seq
     environment:
       SIGNALR_HUB_URL: "http://signalr-hub:80/equipmentHub"
+      SEQ_URL: "http://seq:80"
     command: [ "http://signalr-hub:80/equipmentHub" ]
     networks:
       - ryg-network
     stdin_open: true
     tty: true
 
-  # HMI Client (Fancy Dashboard)
-  hmi-client:
+  # Supervisor Client
+  supervisor-client:
     build:
       context: ..
-      dockerfile: docker/Dockerfile.hmi
-    container_name: ryg-hmi-client
+      dockerfile: docker/Dockerfile.supervisor
+    container_name: ryg-supervisor-client
     depends_on:
       - signalr-hub
+      - seq
     environment:
       SIGNALR_HUB_URL: "http://signalr-hub:80/equipmentHub"
-      TERM: "xterm-256color"
+      SEQ_URL: "http://seq:80"
     command: [ "http://signalr-hub:80/equipmentHub" ]
     networks:
       - ryg-network

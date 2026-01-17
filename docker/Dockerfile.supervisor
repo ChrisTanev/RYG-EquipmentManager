@@ -4,19 +4,19 @@ WORKDIR /src
 
 # Copy project files
 COPY src/RYG.Shared/*.csproj ./src/RYG.Shared/
-COPY clients/RYG.HmiClient/*.csproj ./clients/RYG.HmiClient/
+COPY clients/RYG.SupervisorClient/*.csproj ./clients/RYG.SupervisorClient/
 
 # Restore dependencies
-WORKDIR /src/clients/RYG.HmiClient
+WORKDIR /src/clients/RYG.SupervisorClient
 RUN dotnet restore
 
 # Copy source code
 WORKDIR /src
 COPY src/ ./src/
-COPY clients/RYG.HmiClient/ ./clients/RYG.HmiClient/
+COPY clients/RYG.SupervisorClient/ ./clients/RYG.SupervisorClient/
 
 # Build and publish
-WORKDIR /src/clients/RYG.HmiClient
+WORKDIR /src/clients/RYG.SupervisorClient
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # Runtime stage
@@ -24,4 +24,4 @@ FROM mcr.microsoft.com/dotnet/runtime:9.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-ENTRYPOINT ["dotnet", "RYG.HmiClient.dll"]
+ENTRYPOINT ["dotnet", "RYG.SupervisorClient.dll"]

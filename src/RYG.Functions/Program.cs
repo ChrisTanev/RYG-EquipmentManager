@@ -8,6 +8,7 @@ using RYG.Application.Extensions;
 using RYG.Infrastructure.Extensions;
 using Serilog;
 using Serilog.Debugging;
+using Serilog.Events;
 
 // Enable Serilog self-logging to console with more detail
 SelfLog.Enable(msg => Console.WriteLine($"SERILOG INTERNAL: {msg}"));
@@ -19,9 +20,9 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithProperty("Application", "RYG.Functions")
     .WriteTo.Console()
     .WriteTo.Seq(
-        serverUrl: "http://seq:80",
+        "http://seq:80",
         apiKey: null,
-        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
+        restrictedToMinimumLevel: LogEventLevel.Information)
     .CreateLogger();
 
 try
@@ -36,12 +37,10 @@ try
         .ReadFrom.Configuration(builder.Configuration)
         .CreateLogger();
 
-    builder.Logging.AddSerilog(logger, dispose: true);
+    builder.Logging.AddSerilog(logger, true);
 
     // Test logging
     logger.Information("RYG Functions starting - Seq configured via appsettings.json");
-    logger.Warning("Test warning for Seq");
-    logger.Error("Test error for Seq");
 
     builder.Services.AddSingleton<IOpenApiConfigurationOptions>(_ =>
         new OpenApiConfigurationOptions
