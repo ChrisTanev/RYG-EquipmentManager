@@ -22,10 +22,13 @@ public class EquipmentServiceTests
     [Fact]
     public async Task CreateAsync_ShouldCreateEquipment_AndReturnDto()
     {
+        // Arrange
         var request = new CreateEquipmentRequest(_fixture.Create<string>(), EquipmentState.Yellow);
 
+        // Act
         var result = await _service.CreateAsync(request);
 
+        // Assert
         result.Should().NotBeNull();
         result.Name.Should().Be(request.Name);
         result.State.Should().Be(EquipmentState.Yellow);
@@ -36,6 +39,7 @@ public class EquipmentServiceTests
     [Fact]
     public async Task ChangeStateAsync_ShouldPublishEvent_WhenStateChanges()
     {
+        // Arrange
         var equipment = Equipment.Create(_fixture.Create<string>());
         var id = equipment.Id;
 
@@ -44,8 +48,10 @@ public class EquipmentServiceTests
 
         var request = new ChangeStateRequest(EquipmentState.Green);
 
+        // Act
         var result = await _service.ChangeStateAsync(id, request);
 
+        // Assert
         result.Should().NotBeNull();
         result.State.Should().Be(EquipmentState.Green);
         _eventPublisherMock.Verify(

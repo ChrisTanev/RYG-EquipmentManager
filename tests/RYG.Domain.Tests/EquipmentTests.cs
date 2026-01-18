@@ -7,10 +7,13 @@ public class EquipmentTests
     [Fact]
     public void Create_ShouldCreateEquipment_WithDefaultRedState()
     {
+        // Arrange
         var name = _fixture.Create<string>();
 
+        // Act
         var equipment = Equipment.Create(name);
 
+        // Assert
         equipment.Id.Should().NotBeEmpty();
         equipment.Name.Should().Be(name);
         equipment.State.Should().Be(EquipmentState.Red);
@@ -21,24 +24,29 @@ public class EquipmentTests
     [Fact]
     public void Create_ShouldCreateEquipment_WithSpecifiedInitialState()
     {
+        // Arrange
         var name = _fixture.Create<string>();
         var initialState = EquipmentState.Green;
 
+        // Act
         var equipment = Equipment.Create(name, initialState);
 
+        // Assert
         equipment.State.Should().Be(EquipmentState.Green);
     }
 
     [Fact]
     public void ChangeState_ShouldUpdateState_WhenDifferentState()
     {
+        // Arrange
         var equipment = Equipment.Create(_fixture.Create<string>());
         var originalStateChangedAt = equipment.StateChangedAt;
-
         Thread.Sleep(10);
 
+        // Act
         equipment.ChangeState(EquipmentState.Green);
 
+        // Assert
         equipment.State.Should().Be(EquipmentState.Green);
         equipment.StateChangedAt.Should().BeAfter(originalStateChangedAt);
     }
@@ -46,11 +54,14 @@ public class EquipmentTests
     [Fact]
     public void ChangeState_ShouldNotUpdateTimestamp_WhenSameState()
     {
+        // Arrange
         var equipment = Equipment.Create(_fixture.Create<string>());
         var originalStateChangedAt = equipment.StateChangedAt;
 
+        // Act
         equipment.ChangeState(EquipmentState.Red);
 
+        // Assert
         equipment.State.Should().Be(EquipmentState.Red);
         equipment.StateChangedAt.Should().Be(originalStateChangedAt);
     }
@@ -61,10 +72,13 @@ public class EquipmentTests
     [InlineData(EquipmentState.Green, EquipmentState.Red)]
     public void ChangeState_ShouldTransitionBetweenAllStates(EquipmentState from, EquipmentState to)
     {
+        // Arrange
         var equipment = Equipment.Create(_fixture.Create<string>(), from);
 
+        // Act
         equipment.ChangeState(to);
 
+        // Assert
         equipment.State.Should().Be(to);
     }
 }

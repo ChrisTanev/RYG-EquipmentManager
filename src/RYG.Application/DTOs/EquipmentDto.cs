@@ -5,5 +5,5 @@ public record EquipmentDto(
     string Name,
     EquipmentState State,
     DateTime StateChangedAt,
-    DateTime CreatedAt // TODO
+    DateTime CreatedAt // TODO use more sophisticated type like Nodatime Instant
 );
